@@ -3,33 +3,32 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#171625">
+  <meta name="theme-color" content="#11121c">
   <meta name="description" content="四个尺度，双人或多人轮流抽取的真心话大冒险。">
   <title>开牌 · 真心话大冒险</title>
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icons/icon-192.png">
   <link rel="apple-touch-icon" href="./icons/icon-192.png">
-  <link rel="stylesheet" href="./style.css">
-  <script type="module" src="./app.js"></script>
+  <link rel="stylesheet" href="./style.css?v=2">
+  <script type="module" src="./app.js?v=2"></script>
 </head>
 <body>
   <header class="top">
-    <a class="brand" href="./" aria-label="开牌首页"><span aria-hidden="true">♠</span> 开牌</a>
-    <button id="install" class="quiet" type="button">安装应用</button>
+    <a class="brand" href="./" aria-label="开牌首页">开牌</a>
+    <button id="install" class="quiet" type="button">安装</button>
   </header>
   <main>
     <section class="intro" aria-labelledby="title">
-      <h1 id="title">真心话<span> &amp; </span>大冒险</h1>
-      <p>今晚玩到哪一级？</p>
+      <h1 id="title">真心话<span> / </span>大冒险</h1>
     </section>
     <div class="layout">
       <aside class="settings" aria-label="牌局设置">
         <fieldset id="levels">
           <legend>尺度等级</legend>
-          <label><input type="radio" name="level" value="1" checked><span class="number">01</span><span>聊开了</span></label>
-          <label><input type="radio" name="level" value="2"><span class="number">02</span><span>玩起来</span></label>
-          <label><input type="radio" name="level" value="3"><span class="number">03</span><span>更进一步</span></label>
-          <label><input type="radio" name="level" value="4"><span class="number">04</span><span>放开玩</span></label>
+          <label><input type="radio" name="level" value="1" checked><span>1</span></label>
+          <label><input type="radio" name="level" value="2"><span>2</span></label>
+          <label><input type="radio" name="level" value="3"><span>3</span></label>
+          <label><input type="radio" name="level" value="4"><span>4</span></label>
         </fieldset>
         <fieldset id="modes">
           <legend>玩家</legend>
@@ -40,32 +39,32 @@
         </fieldset>
       </aside>
       <section class="play" aria-label="抽牌区">
-        <article id="card" class="card" data-level="1" aria-live="polite">
-          <div class="card-header"><span id="kind">第 1 级</span><span id="points"></span></div>
+        <article id="card" class="card" aria-live="polite">
+          <div id="card-header" class="card-header" hidden><span id="kind"></span><span id="points"></span></div>
           <div class="card-center">
-            <div id="suit" class="suit" aria-hidden="true">♠</div>
             <h2 id="card-title">准备开牌</h2>
             <div id="art"></div>
             <p id="card-text">选好等级，抽一张试试。</p>
           </div>
           <div id="details" class="details" hidden></div>
           <div id="timer" class="timer" hidden>
-            <span id="remaining" role="timer"></span>
+            <span id="remaining" role="timer" hidden></span>
+            <span id="timer-status" role="status" hidden></span>
             <button id="start-timer" type="button">开始计时</button>
           </div>
         </article>
         <div class="actions">
-          <button id="draw" class="primary" type="button" disabled>抽一张 <span aria-hidden="true">↗</span></button>
-          <button id="reset" class="quiet" type="button" disabled>重新洗牌</button>
+          <button id="draw" class="primary" type="button" disabled>抽一张</button>
+          <button id="reset" class="quiet" type="button" hidden>重新洗牌</button>
         </div>
         <p id="status" role="status">正在加载牌库…</p>
       </section>
     </div>
   </main>
-  <dialog id="install-help">
-    <form method="dialog"><button class="quiet close" aria-label="关闭">×</button></form>
-    <h2>安装开牌</h2>
+  <dialog id="install-help" aria-labelledby="install-title">
+    <h2 id="install-title">安装开牌</h2>
     <p>在浏览器菜单里选「安装应用」或「添加到主屏幕」。iPhone 上可在 Safari 的分享菜单中找到「添加到主屏幕」。</p>
+    <form method="dialog"><button class="quiet close">关闭</button></form>
   </dialog>
 </body>
 </html>

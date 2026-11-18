@@ -6,11 +6,7 @@ const status = byId("status");
 const timerButton = byId("start-timer");
 const installButton = byId("install");
 
-const types = {
-  truth: ["真心话", "♥"],
-  dare: ["大冒险", "♠"],
-  bonus: ["加分牌", "♦"],
-};
+const types = { truth: "真心话", dare: "大冒险", bonus: "加分牌" };
 const requirements = {
   props: "道具", food: "食物", shower: "淋浴", foot: "足部互动",
   rimming: "舔肛", anal: "肛交",
@@ -47,11 +43,11 @@ function pileFor({ level, pair }) {
 function updateControls() {
   if (!decks) return;
   const { pile, total } = pileFor(settings());
-  drawButton.disabled = pile.length === 0;
-  resetButton.disabled = pile.length === total;
+  drawButton.disabled = false;
+  resetButton.hidden = pile.length === total || cardView.dataset.state === "empty";
   status.textContent = pile.length
     ? `剩余 ${pile.length} / ${total} 张`
-    : "这叠牌抽完了。可以重新洗牌，或换个等级。";
+    : "剩余 0 张";
 }
 
 function stopTimer() {
@@ -68,7 +64,9 @@ function prepareTimer(card) {
   stopTimer();
   duration = card?.timer ? card.duration : 0;
   byId("timer").hidden = !duration;
-  timerButton.disabled = false;
+  byId("remaining").hidden = true;
+  byId("timer-status").hidden = true;
+  timerButton.hidden = false;
   timerButton.textContent = "开始计时";
   if (duration) showTime(duration);
 }
@@ -78,32 +76,43 @@ function updateTimer() {
   showTime(seconds);
   if (seconds === 0) {
     stopTimer();
-    timerButton.disabled = false;
+    timerButton.hidden = false;
     timerButton.textContent = "再计一次";
-    status.textContent = "时间到！";
+    byId("timer-status").textContent = "时间到";
   }
 }
 
 timerButton.addEventListener("click", () => {
   if (!duration || interval !== null) return;
   deadline = Date.now() + duration * 1000;
-  timerButton.disabled = true;
-  timerButton.textContent = "计时中";
+  timerButton.hidden = true;
+  byId("remaining").hidden = false;
+  byId("timer-status").hidden = false;
+  byId("timer-status").textContent = "计时中";
   interval = setInterval(updateTimer, 200);
   updateTimer();
 });
 
-function render(card, { level, pair }) {
-  cardView.dataset.level = level;
+function render(card, { pair }, state = card ? "drawn" : "ready") {
+  const messages = {
+    ready: ["准备开牌", "选好等级，抽一张试试。", "抽一张"],
+    loading: ["正在加载牌库", "", "抽一张"],
+    empty: ["这叠牌抽完了", "", "重新洗牌"],
+    error: ["牌库暂时无法加载", "连接网络后重试。", "重试"],
+    drawn: ["", "", "抽一张"],
+  };
+  const [title, description, action] = messages[state];
+  const text = card ? (pair ? card.text2 ?? card.text : card.text) : description;
+  cardView.dataset.state = state;
   cardView.classList.toggle("has-card", Boolean(card));
-  byId("card-title").hidden = Boolean(card);
-  const [label, suit] = types[card?.type] ?? ["", "♠"];
-  byId("kind").textContent = card ? `第 ${level} 级 · ${label}` : `第 ${level} 级`;
-  byId("suit").textContent = suit;
+  cardView.toggleAttribute("data-long", text.length > 90);
+  byId("card-header").hidden = !card;
+  byId("card-title").hidden = !title;
+  byId("card-title").textContent = title;
+  byId("kind").textContent = types[card?.type] ?? "";
   byId("points").textContent = card ? `${card.pts} 分` : "";
-  byId("card-text").textContent = card
-    ? (pair ? card.text2 ?? card.text : card.text)
-    : "选好等级，抽一张试试。";
+  byId("card-text").textContent = text;
+  drawButton.textContent = action;
 
   const art = byId("art");
   art.replaceChildren();
@@ -138,23 +147,34 @@ function render(card, { level, pair }) {
 }
 
 function showDeck() {
-  render(null, settings());
+  if (!decks) return;
+  const selection = settings();
+  render(null, selection, pileFor(selection).pile.length ? "ready" : "empty");
   updateControls();
 }
 
-drawButton.addEventListener("click", () => {
-  const selection = settings();
-  const card = pileFor(selection).pile.pop();
-  if (!card) return;
-  render(card, selection);
-  updateControls();
-});
-
-resetButton.addEventListener("click", () => {
+function reshuffle() {
   const { level, pair } = settings();
   piles.delete(`${level}:${pair}`);
   showDeck();
+}
+
+drawButton.addEventListener("click", () => {
+  if (!decks) {
+    loadDeck();
+    return;
+  }
+  if (cardView.dataset.state === "empty") {
+    reshuffle();
+    return;
+  }
+  const selection = settings();
+  const card = pileFor(selection).pile.pop();
+  render(card, selection, card ? "drawn" : "empty");
+  updateControls();
 });
+
+resetButton.addEventListener("click", reshuffle);
 
 byId("levels").addEventListener("change", showDeck);
 byId("modes").addEventListener("change", showDeck);
@@ -184,21 +204,30 @@ installButton.addEventListener("click", async () => {
   }
 });
 
-try {
-  const response = await fetch("./cards-cn.json");
-  if (!response.ok) throw new Error(`HTTP ${response.status}`);
-  const data = await response.json();
-  for (const level of ["1", "2", "3", "4"]) {
-    if (!Array.isArray(data[level]) || !data[level].length) {
-      throw new Error(`Missing level ${level}`);
+async function loadDeck() {
+  drawButton.disabled = true;
+  resetButton.hidden = true;
+  status.textContent = "";
+  render(null, settings(), "loading");
+  try {
+    const response = await fetch("./cards-cn.json?v=2");
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const data = await response.json();
+    for (const level of ["1", "2", "3", "4"]) {
+      if (!Array.isArray(data[level]) || !data[level].length) {
+        throw new Error(`Missing level ${level}`);
+      }
     }
+    decks = data;
+    showDeck();
+  } catch (error) {
+    console.error("Unable to load the deck", error);
+    render(null, settings(), "error");
+    drawButton.disabled = false;
   }
-  decks = data;
-  showDeck();
-} catch (error) {
-  console.error("Unable to load the deck", error);
-  status.textContent = "牌库加载失败，请刷新页面重试。";
 }
+
+loadDeck();
 
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("./sw.js").catch((error) => {
