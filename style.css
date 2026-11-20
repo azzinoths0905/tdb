@@ -123,3 +123,10 @@ dialog .close { width: 100%; background: #51496c; color: #fff; }
   main { padding-top: 34px; }
   .card { min-height: 320px; }
 }
+
+#roster { width: min(100%, 310px); color: var(--muted); }
+#roster label { display: block; min-height: auto; padding: 4px 0; font-size: .85rem; }
+#names { width: 100%; box-sizing: border-box; font: inherit; color: inherit; background: #191827; border: 1px solid var(--border); border-radius: 12px; padding: 8px 12px; resize: vertical; }
+#roster-error:empty { display: none; }
+#partner { justify-self: center; border: 1px solid var(--border); align-self: center; }
+#kind, #partner, #card-title { overflow-wrap: anywhere; }

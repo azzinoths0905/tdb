@@ -13,6 +13,45 @@ const requirements = {
 };
 const pickMethods = { bottle: "转瓶子选人", pick: "抽牌选人" };
 
+let players = [];
+let turn = 0;
+let activeCard = null;
+const names = byId("names");
+const defaultNames = () => settings().pair ? "玩家一\n玩家二" : "玩家一\n玩家二\n玩家三";
+names.value = defaultNames();
+
+function startGame() {
+  const entered = names.value.split(/\n/).map(name => name.trim()).filter(Boolean);
+  const validCount = settings().pair ? entered.length === 2 : entered.length >= 3;
+  if (!validCount || new Set(entered).size !== entered.length) {
+    byId("roster-error").textContent = settings().pair
+      ? "请填写两个不同的昵称，每行一人。"
+      : "请填写至少三个不同的昵称，每行一人。";
+    names.focus();
+    return;
+  }
+  players = entered;
+  turn = 0;
+  byId("roster").hidden = true;
+  byId("roster-error").textContent = "";
+  showDeck();
+}
+
+function passTurn() {
+  return players[turn % players.length];
+}
+
+byId("partner").addEventListener("click", () => {
+  const others = players.filter(name => name !== passTurn());
+  const chosen = [];
+  const count = (activeCard?.np ?? 2) - 1;
+  while (chosen.length < count && others.length) {
+    chosen.push(others.splice(Math.floor(Math.random() * others.length), 1)[0]);
+  }
+  byId("partner").textContent = "搭档 · " + chosen.join("、");
+  byId("partner").disabled = true;
+});
+
 let decks;
 const piles = new Map();
 let duration = 0;
@@ -30,7 +69,7 @@ function settings() {
 function pileFor({ level, pair }) {
   const key = `${level}:${pair}`;
   if (!piles.has(key)) {
-    const pile = decks[level].filter((card) => !(pair && card.exclude2));
+    const pile = decks[level].filter((card) => !(pair && (card.exclude2 || card.np > 2)));
     for (let i = pile.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [pile[i], pile[j]] = [pile[j], pile[i]];
@@ -113,6 +152,23 @@ function render(card, { pair }, state = card ? "drawn" : "ready") {
   byId("points").textContent = card ? `${card.pts} 分` : "";
   byId("card-text").textContent = text;
   drawButton.textContent = action;
+  activeCard = card;
+  const picker = byId("partner");
+  picker.hidden = !card?.pick || pair || card.allin;
+  picker.disabled = false;
+  picker.textContent = pickMethods[card?.pick] ?? "选搭档";
+  if (players.length && card) {
+    byId("kind").textContent = passTurn() + " · " + types[card.type];
+    drawButton.textContent = "结束本轮";
+    if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      cardView.animate([{opacity: 0.35, transform: "perspective(700px) rotateY(-16deg)"}, {opacity: 1, transform: "none"}], {duration: 280});
+    }
+  }
+  if (state === "ready") {
+    drawButton.textContent = players.length ? "翻开卡牌" : "开始游戏";
+    byId("card-title").textContent = players.length ? "轮到" + passTurn() : "准备开牌";
+    byId("card-text").textContent = players.length ? "把手机交给这位玩家。" : "选好等级和玩家，开始这一局。";
+  }
 
   const art = byId("art");
   art.replaceChildren();
@@ -131,7 +187,7 @@ function render(card, { pair }, state = card ? "drawn" : "ready") {
   if (card) {
     if (card.allin && !pair) labels.push("全员参与");
     if (!pair && card.np && !card.allin) labels.push(`${card.np} 人参与`);
-    if (!pair && pickMethods[card.pick]) labels.push(pickMethods[card.pick]);
+    if (pair && card.pick && players.length) labels.push("搭档 · " + players[(turn + 1) % players.length]);
     if (card.bonus) labels.push("可加分");
     if (card.requires?.length) {
       labels.push(`需要：${card.requires.map((key) => requirements[key] ?? key).join("、")}`);
@@ -164,6 +220,15 @@ drawButton.addEventListener("click", () => {
     loadDeck();
     return;
   }
+  if (!players.length) {
+    startGame();
+    return;
+  }
+  if (activeCard) {
+    turn += 1;
+    showDeck();
+    return;
+  }
   if (cardView.dataset.state === "empty") {
     reshuffle();
     return;
@@ -177,7 +242,14 @@ drawButton.addEventListener("click", () => {
 resetButton.addEventListener("click", reshuffle);
 
 byId("levels").addEventListener("change", showDeck);
-byId("modes").addEventListener("change", showDeck);
+byId("modes").addEventListener("change", () => {
+  players = [];
+  turn = 0;
+  names.value = defaultNames();
+  byId("roster").hidden = false;
+  byId("roster-error").textContent = "";
+  showDeck();
+});
 
 window.addEventListener("beforeinstallprompt", (event) => {
   event.preventDefault();

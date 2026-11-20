@@ -9,8 +9,8 @@
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icons/icon-192.png">
   <link rel="apple-touch-icon" href="./icons/icon-192.png">
-  <link rel="stylesheet" href="./style.css?v=2">
-  <script type="module" src="./app.js?v=2"></script>
+  <link rel="stylesheet" href="./style.css?v=3">
+  <script type="module" src="./app.js?v=3"></script>
 </head>
 <body>
   <header class="top">
@@ -37,6 +37,11 @@
             <label><input type="radio" name="mode" value="group"><span>多人</span></label>
           </div>
         </fieldset>
+        <div id="roster">
+          <label for="names">玩家昵称（每行一人）</label>
+          <textarea id="names" rows="3" aria-describedby="roster-error"></textarea>
+          <p id="roster-error" role="alert"></p>
+        </div>
       </aside>
       <section class="play" aria-label="抽牌区">
         <article id="card" class="card" aria-live="polite">
@@ -46,6 +51,7 @@
             <div id="art"></div>
             <p id="card-text">选好等级，抽一张试试。</p>
           </div>
+          <button type="button" id="partner" class="quiet" hidden></button>
           <div id="details" class="details" hidden></div>
           <div id="timer" class="timer" hidden>
             <span id="remaining" role="timer" hidden></span>
