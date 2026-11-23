@@ -1,132 +1,173 @@
 @font-face {
-  font-family: "Kaipai Serif";
+  font-family: Kaipai;
   src: url("./fonts/kaipai-serif.woff") format("woff");
   font-display: swap;
 }
 :root {
   color-scheme: dark;
-  font-family: "Kaipai Serif", "Noto Serif SC", "Songti SC", SimSun, serif;
-  background: #11121c;
-  color: #f3effc;
-  --muted: #c4bdd5;
-  --border: #504b6d;
-  --accent: #b5a8dc;
+  --ink: #141923;
+  --paper: #f5f2e9;
+  --mint: #a5e7c9;
+  --ice: #b4cdea;
+  --muted: #bac3cd;
+  --line: #45515c;
+  --serif: Kaipai, "Songti SC", serif;
+  font: 16px/1.6 system-ui, sans-serif;
+  color: var(--paper);
+  background: var(--ink);
 }
-* { box-sizing: border-box; }
+* {box-sizing: border-box}
+body {margin: 0; min-height: 100svh; background: radial-gradient(ellipse at 75% 42%, #22333b, transparent 55%)}
+button, textarea {font: inherit}
+button {cursor: pointer; color: inherit}
+button:disabled {opacity: .55; cursor: default}
+button:focus-visible, textarea:focus-visible, label:has(input:focus-visible) {outline: 3px solid var(--ice); outline-offset: 4px}
+[hidden], main:not([data-screen="home"]) .intro, main[data-screen="home"] .layout,
+main[data-screen="game"] .settings, main[data-screen="setup"] .gamebar,
+main[data-screen="setup"] .card, main[data-screen="setup"] #reset {display: none !important}
+.top, main {width: min(1080px, 90%); margin: auto}
+.top {display: flex; justify-content: space-between; align-items: center; padding: 18px 0; border-bottom: 1px solid var(--line)}
+.brand {font: bold 1.55rem var(--serif); display: flex; gap: 12px; align-items: center}
+.brand i {font: 1.2rem Georgia, serif; color: var(--mint); border: 1px solid; border-radius: 4px; padding: 1px 5px; transform: rotate(-10deg)}
+nav {display: flex; gap: 10px}
+button {border-radius: 100px; padding: 10px 21px; min-height: 44px}
+.quiet, .timer button {background: transparent; border: 1px solid var(--line)}
+.quiet:hover, .timer button:hover {border-color: var(--ice)}
+.primary {border: 0; background: var(--mint); color: #102a24; font-weight: 700; min-height: 52px}
+.primary:hover {background: #c5f4de}
+.intro {display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 3%; min-height: min(740px, calc(100svh - 84px)); padding: 44px 4%; isolation: isolate}
+.eyebrow, .gamebar {color: var(--mint); font-size: .82rem; letter-spacing: .12em}
+h1, h2 {font-family: var(--serif); margin: 0; line-height: 1.2}
+h1 {font-size: clamp(3.5rem, 6.8vw, 6rem); letter-spacing: -.045em}
+h1 em {color: var(--ice); font-style: normal}
+.summary {color: var(--muted); margin: 22px 0 28px}
+#enter {display: inline-flex; align-items: center; gap: 48px}
+.layout {max-width: 520px; margin: auto; padding: clamp(20px,5vw,54px) 0 28px}
+.settings {display: grid; gap: 18px}
+h2 {font-size: clamp(1.8rem, 5vw, 2.6rem)}
+fieldset {margin:0; border:0; padding:0; min-width:0}
+legend, #roster label {display:block; margin-bottom:8px; color:var(--muted); font-size:.88rem}
+#levels,.segment {display:flex; flex-wrap:wrap; gap:6px}
+fieldset label {position:relative; flex:1; text-align:center; cursor:pointer; min-width: 58px}
+fieldset input {position:absolute; inset:0; opacity:0; width:100%; height:100%; margin:0; cursor:pointer}
+fieldset label span {display:block; padding:10px 2px; border:1px solid var(--line); border-radius:10px}
+fieldset input:checked + span {background:#24413c; color:var(--mint); border-color:var(--mint)}
+#names {display:block; width:100%; border:1px solid var(--line); background:#1b222e; color:var(--paper); padding:12px; border-radius:10px; resize:vertical}
+#roster-error {color:#ffb4a8}
+#roster-error:empty {display:none}
+.gamebar,.card-header {display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:16px}
+.card {--card-tone:var(--mint); display:flex; flex-direction:column; gap:14px; min-height:clamp(270px,45svh,430px); padding:24px; border:1px solid var(--card-tone); border-radius:20px; background:linear-gradient(145deg,#24393a,#19262e); box-shadow:inset 0 0 0 5px #19252c,inset 0 0 0 6px #586c70; overflow-wrap:anywhere}
+.card[data-kind="dare"] {--card-tone:var(--ice); background:linear-gradient(145deg,#293c52,#202936)}
+.card[data-kind="bonus"] {--card-tone:#e5c591; background:linear-gradient(145deg,#42382f,#2b282b)}
+.card-center {margin:auto 0; text-align:center}
+.suit,.card-header {color:var(--card-tone)}
+.suit {font-size:2.2rem; margin-bottom:12px}
+.has-card .suit {display:none}
+#card-text {font:1.05rem/1.7 var(--serif); margin:10px 0}
+.has-card #card-text {font-size:clamp(1.2rem,3.3vw,1.55rem)}
+#art img {max-width:100%; max-height:210px}
+.details,.timer {display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:9px; color:var(--card-tone)}
+#partner {align-self:center}
+#remaining {font-variant-numeric:tabular-nums}
+.actions {display:grid; gap:8px; margin-top:18px}
+#status {color:var(--muted); text-align:center; font-size:.84rem}
+dialog {width:min(390px,90vw); padding:28px; border:1px solid var(--line); border-radius:18px; background:#202b34; color:inherit}
+dialog::backdrop {background:#080d16ce}
+/* The landscape continues behind the table when the cover opens. */
+:root {
+  --ink:#171321; --paper:#fff2e4; --mint:#ecc9dc;
+  --ice:#d9bfed; --muted:#d3c2d4; --line:#76617a;
+}
 body {
-  margin: 0;
-  min-height: 100vh;
-  background: radial-gradient(ellipse 320px 280px at 50% 495px, #292744 0%, #181827 65%, transparent 100%);
+  background:linear-gradient(90deg,#19132199,#25182e55),url("./moonlake.jpg") 66% 50% / cover fixed;
 }
-button, input { font: inherit; }
-button { cursor: pointer; }
-button:disabled { opacity: .55; cursor: default; }
-button:focus-visible, a:focus-visible, label:has(input:focus-visible) {
-  outline: 2px solid #d8caff;
-  outline-offset: 3px;
+body:has(main[data-screen="home"]) {background:radial-gradient(ellipse at 72% 42%,#382a44,#1d182a 62%,#14111e)}
+.top, main {width:min(1280px,92%)}
+.top {padding:22px 0; border-color:#dac1d038}
+.brand {gap:13px; letter-spacing:.17em}
+.brand-seal {position:relative; display:grid; place-items:center}
+.brand .brand-seal {width:33px; height:33px; border:1px solid #dec1d19c; border-radius:50%; transform:none; color:#f7cfcc; font-size:1.5rem}
+.brand-seal::after {content:"";position:absolute; inset:6px -4px; transform:rotate(-38deg); border:1px solid #e7bed497; border-radius:50%}
+.top nav {gap:8px}
+.top .quiet {font-size:.88rem; border-color:transparent}
+.top #install {border-color:#dbc1d358; background:#251c3099}
+.intro {
+  position:relative; display:flex; align-items:center; min-height:clamp(540px,77svh,840px);
+  margin:clamp(18px,3vw,44px) 0; padding:6% 8% 8%; overflow:hidden;
+  border:1px solid #e1c8dc50; border-radius:8px;
+  background:linear-gradient(90deg,#191321cf 0%,#19132160 31%,transparent 62%),url("./moonlake.jpg") center / cover;
+  box-shadow:0 28px 70px #120d1b55;
 }
-[hidden] { display: none !important; }
-.top {
-  width: min(100% - 40px, 520px);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin: 0 auto;
-  padding: max(16px, env(safe-area-inset-top)) 0 4px;
-}
-.brand { color: inherit; text-decoration: none; font-size: 1.15rem; letter-spacing: .1em; }
-main { width: min(100% - 36px, 500px); margin: 0 auto; padding: 22px 0 18px; }
-h1 { margin: 0 0 19px; text-align: center; font-size: clamp(1.5rem, 5.5vw, 2rem); font-weight: 600; letter-spacing: .055em; }
-h1 span { color: var(--muted); }
-.settings { display: grid; justify-items: center; gap: 6px; margin-bottom: 18px; }
-fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
-legend {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
-}
-#levels, .segment { display: flex; gap: 7px; }
-label {
-  position: relative;
-  display: grid;
-  place-items: center;
-  min-height: 44px;
-  min-width: 53px;
-  padding: 4px 10px;
-  cursor: pointer;
-}
-label input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
-label span {
-  display: grid;
-  place-items: center;
-  width: 100%;
-  padding: 4px 10px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  pointer-events: none;
-}
-.segment label { min-width: 103px; }
-label:has(:checked) span { background: var(--accent); color: #171426; border-color: transparent; font-weight: 700; }
+.intro::before {content:"";position:absolute;pointer-events:none;inset:8px;border:1px solid #e1c8dc20;border-radius:3px}
+.hero-copy {position:relative; z-index:1}
+.eyebrow {display:flex;align-items:center;gap:12px;margin:0 0 25px;color:#e9cbda;letter-spacing:.18em}
+.eyebrow b {border:1px solid #d3b6ce7a;border-radius:100px;padding:1px 9px;font:normal .74rem/1.6 Georgia,serif;letter-spacing:.06em}
+h1 {font-size:clamp(4.2rem,7.5vw,7.2rem); font-weight:500; line-height:1.1;letter-spacing:.045em; text-shadow:0 3px 28px #29142f66}
+h1 em {color:#efcad8; margin-left:.46em}
+.summary {margin:25px 0 30px; letter-spacing:.07em; font-size:.92rem}
+.primary {color:#342036; background:linear-gradient(112deg,#ffe5d3,#ebc6da 57%,#d7c9ef); box-shadow:inset 0 0 0 1px #fff7,0 5px 26px #dda6c323; transition:filter .2s,transform .2s}
+.primary:hover {background:linear-gradient(112deg,#ffe5d3,#ebc6da 57%,#d7c9ef);filter:brightness(1.06);transform:translateY(-1px)}
+#enter {padding:13px 12px 13px 26px;gap:44px}
+#enter span {display:grid;place-items:center;width:29px;height:29px;border-radius:50%;border:1px solid #78587470}
+.horizon {position:absolute;bottom:18px;left:7%;right:7%;display:flex;align-items:center;gap:12px;color:#edcddd9e}
+.horizon i {height:1px;flex:1;background:linear-gradient(90deg,transparent,#dbb9cc66)}
+.horizon i:last-child {transform:rotate(180deg)}
+.layout {margin:clamp(22px,5vh,54px) auto;padding:clamp(19px,3.3vw,38px);max-width:550px;border:1px solid #e3cbdf50;border-radius:22px;
+  background:linear-gradient(145deg,#302538f2,#211a2cef);box-shadow:0 24px 70px #100b1a66;backdrop-filter:blur(16px)}
+.settings {gap:20px}
+.settings h2 {padding-bottom:16px;border-bottom:1px solid #ba9fb43f}
+fieldset label span {background:#211a29;border-color:#77647c91}
+fieldset input:checked + span {background:#573e55;color:#fff1e9;border-color:#ecc4d5}
+#names {background:#1f1927;border-color:#77647c}
+.gamebar {letter-spacing:.08em}
+.gamebar .quiet {font-size:.83rem}
 .card {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  min-height: 270px;
-  padding: 20px 22px;
-  border: 1px solid #625980;
-  border-radius: 22px;
-  background: radial-gradient(ellipse at 50% 54%, #36325a, #211f36 70%, #1b1a2b);
-  box-shadow: 0 8px 36px #2521444d;
+  --card-tone:#edc5d7; --face:#443045;
+  position:relative; isolation:isolate; overflow:hidden;
+  background:radial-gradient(ellipse at 75% 4%,var(--face),transparent 66%),#251c30;
+  border:1px solid #bc9aaf;border-radius:15px;box-shadow:inset 0 0 0 5px #2e2233,inset 0 0 0 6px #997a915e;
 }
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  padding-bottom: 9px;
-  border-bottom: 1px solid #a89ac546;
-  color: var(--muted);
-  font-size: .88rem;
+.card[data-kind="dare"] {--card-tone:#dfccfa;--face:#41334f;background:radial-gradient(ellipse at 75% 4%,var(--face),transparent 66%),#241d33}
+.card[data-kind="bonus"] {--card-tone:#f7d9bf;--face:#564049;background:radial-gradient(ellipse at 75% 4%,var(--face),transparent 66%),#2b202b}
+.card:not(.has-card) {background:linear-gradient(#24182985,#241829e8),url("./moonlake.jpg") 64% 50% / cover}
+.suit {width:72px;height:60px;position:relative;display:grid;place-items:center;margin:0 auto 16px}
+.suit i {width:38px;height:38px;border-radius:50%;background:linear-gradient(142deg,#ffead3,#ebc9d8 45%,#9483ae);box-shadow:0 0 22px #efc6d94d}
+.suit::after {content:"";position:absolute;width:67px;height:21px;border-radius:50%;border:1px solid #f1cadb;transform:rotate(-27deg)}
+.card-header {padding-bottom:12px;border-bottom:1px solid #c5a9c040}
+.details span {border-radius:20px;padding:2px 10px;background:#fff1;font-size:.83rem}
+dialog {background:linear-gradient(135deg,#403047,#251b30);box-shadow:0 25px 100px #160e27a1}
+dialog::backdrop {background:#17101ecc;backdrop-filter:blur(6px)}
+@media(max-width:680px) {
+  .top,main {width:92%}
+  .top {padding:12px 0}
+  .intro {min-height:clamp(570px,80svh,740px);margin:16px 0;padding:240px 24px 50px;align-items:flex-end;
+    background:linear-gradient(0deg,#1c1628 30%,#1c1628 34%,#25192f9c 46%,#291d3200 65%),url("./moonlake.jpg") 74% top / auto 67% no-repeat,#1c1628}
+  .eyebrow {margin-bottom:13px}
+  h1 {font-size:clamp(3.4rem,13vw,5rem)}
+  .summary {font-size:.83rem;margin:15px 0 18px}
+  .layout {margin:16px auto 24px}
+  .card {padding:20px}
+  .top .quiet {padding-inline:13px}
 }
-.card-center { margin: auto 0; text-align: center; }
-h2 { margin: 0 0 12px; font-size: clamp(1.35rem, 6vw, 1.85rem); font-weight: 600; }
-#card-text { margin: 0 auto; max-width: 38ch; font-size: 1rem; line-height: 1.7; overflow-wrap: anywhere; }
-.has-card #card-text { font-size: clamp(1.06rem, 4.6vw, 1.34rem); }
-.has-card[data-long] #card-text { font-size: 1rem; }
-#art img { max-width: 100%; max-height: 220px; margin-bottom: 12px; border-radius: 10px; }
-.details { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 12px; color: var(--muted); font-size: .78rem; }
-.timer { display: grid; justify-items: center; gap: 2px; }
-#remaining { font-size: 2.3rem; line-height: 1.1; color: #ded3ff; font-variant-numeric: tabular-nums; }
-#timer-status { font-size: .85rem; color: var(--muted); }
-.timer button { background: transparent; color: inherit; border: 1px solid #81759d; border-radius: 12px; min-height: 44px; padding: 4px 15px; }
-.actions { display: grid; gap: 3px; width: 100%; margin: 16px auto 0; }
-.primary, .quiet { min-height: 44px; border-radius: 24px; padding: 7px 15px; }
-.primary { border: 0; min-height: 48px; background: var(--accent); color: #171426; font-size: 1.06rem; font-weight: 700; }
-.quiet { border: 0; background: transparent; color: var(--muted); }
-#status { margin: 1px 0 0; text-align: center; color: var(--muted); font-size: .82rem; min-height: 1.3em; }
-dialog {
-  width: min(380px, calc(100% - 36px));
-  background: #25233a;
-  color: inherit;
-  border: 1px solid #625980;
-  border-radius: 18px;
-  padding: 23px;
-  text-align: center;
+@media(prefers-reduced-motion:reduce) {.primary {transition:none}.primary:hover {transform:none}}
+main[data-screen="setup"] .play {display:none}
+.setup-head {display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #ba9fb43f;padding-bottom:14px;gap:10px}
+.setup-head h2 {border:0;padding:0}
+#names[aria-invalid="true"] {border-color:#ffb4a8}
+#flip {position:absolute;inset:0;z-index:1;width:100%;background:transparent;border:0;border-radius:inherit}
+#flip:focus-visible {outline-offset:-6px}
+button,fieldset label {touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+button:active:not(:disabled), fieldset label:active span {filter:brightness(.88)}
+#shuffle-help form {display:flex;justify-content:flex-end;gap:10px}
+@media(prefers-reduced-motion:no-preference) {
+  .settings,.gamebar,.intro .hero-copy {animation:arrive .22s ease-out}
+  .card[data-state="ready"] .card-center,dialog[open] {animation:arrive .2s ease-out}
+  @keyframes arrive {from {opacity:.55;transform:translateY(6px)} to {opacity:1;transform:translateY(0)}}
 }
-dialog::backdrop { background: #080811c9; }
-dialog p { color: var(--muted); line-height: 1.65; }
-dialog .close { width: 100%; background: #51496c; color: #fff; }
-@media (min-width: 720px) {
-  main { padding-top: 34px; }
-  .card { min-height: 320px; }
+@media(max-width:680px) {
+  .top {padding-top:max(12px, env(safe-area-inset-top))}
+  .layout {margin-bottom:max(24px,env(safe-area-inset-bottom))}
+  dialog {width:100%;max-width:100%;max-height:85dvh;margin:auto 0 0;border-radius:22px 22px 0 0;padding:26px 22px max(24px,env(safe-area-inset-bottom))}
+  dialog form button:only-child {width:100%}
 }
-
-#roster { width: min(100%, 310px); color: var(--muted); }
-#roster label { display: block; min-height: auto; padding: 4px 0; font-size: .85rem; }
-#names { width: 100%; box-sizing: border-box; font: inherit; color: inherit; background: #191827; border: 1px solid var(--border); border-radius: 12px; padding: 8px 12px; resize: vertical; }
-#roster-error:empty { display: none; }
-#partner { justify-self: center; border: 1px solid var(--border); align-self: center; }
-#kind, #partner, #card-title { overflow-wrap: anywhere; }
+fieldset label span {pointer-events:none}

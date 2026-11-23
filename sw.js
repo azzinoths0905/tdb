@@ -1,8 +1,8 @@
 const cachePrefix = "kaipai-";
-const cacheName = `${cachePrefix}v3`;
+const cacheName = `${cachePrefix}v6`;
 const shell = [
-  "./", "./index.html", "./style.css?v=3", "./app.js?v=3", "./cards-cn.json?v=2",
-  "./fonts/kaipai-serif.woff",
+  "./", "./index.html", "./style.css?v=6", "./app.js?v=6", "./cards-cn.json?v=2",
+  "./fonts/kaipai-serif.woff", "./moonlake.jpg",
   "./manifest.webmanifest", "./icons/icon-192.png", "./icons/icon-512.png",
 ];
 
