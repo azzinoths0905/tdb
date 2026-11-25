@@ -47,7 +47,10 @@ h1 em {color: var(--ice); font-style: normal}
 h2 {font-size: clamp(1.8rem, 5vw, 2.6rem)}
 fieldset {margin:0; border:0; padding:0; min-width:0}
 legend, #roster label {display:block; margin-bottom:8px; color:var(--muted); font-size:.88rem}
-#levels,.segment {display:flex; flex-wrap:wrap; gap:6px}
+.segment {display:flex; gap:2px; padding:3px; background:#1d1725; border:1px solid #77647c91; border-radius:14px}
+.segment label {min-width:0}
+.segment label span {background:transparent;border-color:transparent}
+.segment input:checked + span {background:#573e55;color:#fff1e9;border-color:#b48aa8}
 fieldset label {position:relative; flex:1; text-align:center; cursor:pointer; min-width: 58px}
 fieldset input {position:absolute; inset:0; opacity:0; width:100%; height:100%; margin:0; cursor:pointer}
 fieldset label span {display:block; padding:10px 2px; border:1px solid var(--line); border-radius:10px}
@@ -171,3 +174,39 @@ button:active:not(:disabled), fieldset label:active span {filter:brightness(.88)
   dialog form button:only-child {width:100%}
 }
 fieldset label span {pointer-events:none}
+#deck-options h3 {margin:0;font-family:var(--serif)}
+#deck-count {margin:4px 0 12px;color:var(--muted);font-size:.88rem}
+#deck-groups details {border-top:1px solid var(--line)}
+#deck-groups summary {padding:12px 0;cursor:pointer}
+#deck-groups details[open] {max-height:340px;overflow:auto}
+#deck-groups label {display:flex;align-items:baseline;gap:10px;padding:10px 2px;cursor:pointer}
+#deck-groups input {accent-color:#c592b8;flex:none}
+#filter-panel {margin:10px 0;border-block:1px solid var(--line);padding:8px 0}
+#filter-panel summary {cursor:pointer;padding:6px 0}
+#deck-filters {display:grid;gap:15px;margin:12px 0 16px}
+#match-count {font-size:.9rem;color:var(--muted)}
+#free-levels,.multi-filter {display:flex;flex-wrap:wrap;gap:6px}
+#free-levels label,.multi-filter label {flex:none;min-width:0}
+#free-levels label span,.multi-filter label span {display:flex;align-items:center;min-height:44px;gap:6px;padding:7px 12px;border-radius:99px;font-size:.88rem}
+#free-levels span::before,.multi-filter span::before,#deck-groups label span::before {content:"";display:inline-block;width:.65em;height:.65em;border:1px solid #bca3b8;border-radius:50%;flex:none}
+#free-levels input:checked + span::before,.multi-filter input:checked + span::before,#deck-groups input:checked + span::before {background:#f3cfdf;box-shadow:inset 0 0 0 2px #573e55}
+#deck-groups label {position:relative;padding:0;margin:6px 2px}
+#deck-groups label input {position:absolute;inset:0;opacity:0;width:100%;height:100%;margin:0;cursor:pointer}
+#deck-groups label span {display:flex;gap:9px;align-items:baseline;width:100%;min-height:44px;padding:9px 12px;border:1px solid #77647c91;border-radius:14px;pointer-events:none}
+#deck-groups input:checked + span {background:#412f42;border-color:#af87a3}
+#free-levels input:indeterminate + span::before,.multi-filter input:indeterminate + span::before {background:linear-gradient(0deg,transparent 35%,#f3cfdf 35% 65%,transparent 65%)}
+#deck-groups button[aria-pressed]::before {content:"○ ";color:var(--muted)}
+#deck-groups button[aria-pressed="true"]::before {content:"✓ "}
+#deck-groups button[aria-pressed="mixed"]::before {content:"− "}
+.duration-options {display:flex;flex-wrap:wrap;gap:6px;width:100%;padding-left:12px;margin-left:5px;border-left:2px solid var(--line)}
+main:not([data-screen="quick"]) .quick,
+main[data-screen="quick"] :is(.settings,.play) {display:none}
+.quick-hint,#quick-status {color:var(--muted);font-size:.92rem}
+.presets {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:20px 0}
+.presets button {text-align:left;border:1px solid #916e90;border-radius:16px;padding:14px;background:linear-gradient(145deg,#443448,#292231);display:grid;gap:4px}
+.presets button:hover {border-color:var(--ice)}
+.presets i {font:italic 1.15rem Georgia,serif;color:#dfbbd7}
+.presets strong {font:600 1.45rem var(--serif)}
+.presets small {color:var(--muted)}
+#quick-status:empty {display:none}
+#custom {width:100%}

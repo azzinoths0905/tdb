@@ -4,13 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#171321">
-  <meta name="description" content="四个尺度，双人或多人轮流抽取的真心话大冒险。">
+  <meta name="description" content="按尺度与属性自选牌组，逐张翻开真心话和大冒险。">
   <title>开牌 · 真心话大冒险</title>
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icons/icon-192.png">
   <link rel="apple-touch-icon" href="./icons/icon-192.png">
-  <link rel="stylesheet" href="./style.css?v=6">
-  <script type="module" src="./app.js?v=6"></script>
+  <link rel="stylesheet" href="./style.css?v=13">
+  <script type="module" src="./app.js?v=13"></script>
 </head>
 <body>
   <header class="top">
@@ -22,46 +22,57 @@
       <div class="hero-copy">
         <p class="eyebrow"><b>18+</b> 成人派对游戏</p>
         <h1 id="title">真心话<br><em>大冒险</em></h1>
-        <p class="summary">四个尺度 · 275 张牌 · 双人或多人</p>
+        <p class="summary">四个尺度 · 275 张牌 · 自选牌组</p>
         <button id="enter" class="primary" type="button"><strong id="enter-label">进入牌桌</strong> <span aria-hidden="true">→</span></button>
       </div>
       <div class="horizon" aria-hidden="true"><i></i>✧<i></i></div>
     </section>
     <div class="layout">
+      <section class="quick" aria-labelledby="quick-title">
+        <div class="setup-head"><h2 id="quick-title" tabindex="-1">选个难度</h2><button class="quiet" id="quick-back" type="button">返回</button></div>
+        <p class="quick-hint">点一个难度，就能翻牌。第一次玩？从「破冰」开始。</p>
+        <div class="presets">
+          <button data-level="1" disabled><i aria-hidden="true">Ⅰ</i><strong>破冰</strong><small>从真心话聊起</small></button>
+          <button data-level="2" disabled><i aria-hidden="true">Ⅱ</i><strong>升温</strong><small>问答与挑战穿插</small></button>
+          <button data-level="3" disabled><i aria-hidden="true">Ⅲ</i><strong>进阶</strong><small>以行动挑战为主</small></button>
+          <button data-level="4" disabled><i aria-hidden="true">Ⅳ</i><strong>大胆</strong><small>最高尺度的大冒险</small></button>
+        </div>
+        <p id="quick-status" role="status">正在加载牌库…</p>
+        <button id="quick-retry" type="button" class="quiet" hidden>重新加载</button>
+        <button id="custom" type="button" class="quiet">自定义牌组 →</button>
+      </section>
       <aside class="settings" aria-label="牌局设置">
         <div class="setup-head"><h2 tabindex="-1" id="setup-title">设置牌局</h2><button type="button" class="quiet" id="back">返回</button></div>
-        <fieldset id="levels">
-          <legend>尺度等级</legend>
-          <label><input type="radio" name="level" value="1" checked><span>Ⅰ 破冰</span></label>
-          <label><input type="radio" name="level" value="2"><span>Ⅱ 升温</span></label>
-          <label><input type="radio" name="level" value="3"><span>Ⅲ 进阶</span></label>
-          <label><input type="radio" name="level" value="4"><span>Ⅳ 大胆</span></label>
+        <fieldset id="free-levels">
+          <legend>尺度（可多选）</legend>
+          <label><input id="all-levels" type="checkbox"><span>全选</span></label>
+          <label><input type="checkbox" name="free-level" value="1" checked><span>Ⅰ 破冰</span></label>
+          <label><input type="checkbox" name="free-level" value="2"><span>Ⅱ 升温</span></label>
+          <label><input type="checkbox" name="free-level" value="3"><span>Ⅲ 进阶</span></label>
+          <label><input type="checkbox" name="free-level" value="4"><span>Ⅳ 大胆</span></label>
         </fieldset>
-        <fieldset id="modes">
-          <legend>玩家</legend>
-          <div class="segment">
-            <label><input type="radio" name="mode" value="pair" checked><span>双人</span></label>
-            <label><input type="radio" name="mode" value="group"><span>多人</span></label>
-          </div>
-        </fieldset>
-        <div id="roster">
-          <label for="names">玩家昵称（每行一人）</label>
-          <textarea id="names" rows="3" aria-describedby="roster-error"></textarea>
-          <p id="roster-error" role="alert"></p>
-        </div>
+        <section id="deck-options" aria-label="自选牌组">
+          <h3>自选牌组</h3>
+          <details id="filter-panel" open><summary>按属性筛选</summary>
+            <div id="deck-filters"></div>
+            <button id="clear-filters" class="quiet" type="button">重置筛选</button>
+          </details>
+          <p id="match-count" role="status"></p>
+          <button id="use-matches" class="quiet" type="button" hidden>仅选中匹配的牌</button>
+          <p id="deck-count" role="status"></p><div id="deck-groups"></div>
+        </section>
         <button id="apply" class="primary" disabled type="button">正在加载牌库…</button>
       </aside>
       <section class="play" aria-label="抽牌区">
         <div class="gamebar"><span id="round" tabindex="-1"></span><button type="button" id="edit" class="quiet">牌局设置</button></div>
         <article id="card" class="card" aria-live="polite">
-          <div id="card-header" class="card-header" hidden><span id="kind"></span><span id="points"></span></div>
+          <div id="card-header" class="card-header" hidden><span id="kind"></span></div>
           <button id="flip" type="button" aria-label="翻开卡牌" hidden></button>
           <div class="card-center"><div class="suit" aria-hidden="true"><i></i></div>
             <h2 id="card-title">准备开牌</h2>
             <div id="art"></div>
             <p id="card-text">选好等级，抽一张试试。</p>
           </div>
-          <button type="button" id="partner" class="quiet" hidden></button>
           <div id="details" class="details" hidden></div>
           <div id="timer" class="timer" hidden>
             <span id="remaining" role="timer" hidden></span>
@@ -77,10 +88,10 @@
       </section>
     </div>
   </main>
-  <dialog id="guide-help" aria-labelledby="guide-title"><h2 id="guide-title">怎么玩</h2><p>选择尺度，填入玩家昵称。每轮把手机交给屏幕上的玩家，由本人翻牌。遇到不想回答的问题或挑战，随时点「结束本轮」交给下一位。</p><form method="dialog"><button class="primary">知道了</button></form></dialog>
+  <dialog id="guide-help" aria-labelledby="guide-title"><h2 id="guide-title">怎么玩</h2><p>点一个难度即可开局。想自己挑牌时，进入「自定义牌组」，按尺度和属性选牌。翻开牌背开始游戏；遇到想跳过的牌，直接点「翻下一张」。</p><form method="dialog"><button class="primary">知道了</button></form></dialog>
   <dialog id="shuffle-help" aria-labelledby="shuffle-title">
-    <h2 id="shuffle-title">重新洗牌？</h2><p>当前尺度已抽过的牌会放回牌堆，仍由本轮玩家翻牌。</p>
-    <form method="dialog"><button class="quiet" autofocus>继续本轮</button><button class="primary" id="confirm-shuffle">重新洗牌</button></form>
+    <h2 id="shuffle-title">重新洗牌？</h2><p>已抽过的牌会放回当前牌堆。</p>
+    <form method="dialog"><button class="quiet" autofocus>继续翻牌</button><button class="primary" id="confirm-shuffle">重新洗牌</button></form>
   </dialog>
   <dialog id="install-help" aria-labelledby="install-title">
     <h2 id="install-title">安装开牌</h2>
