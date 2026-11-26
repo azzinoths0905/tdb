@@ -1,15 +1,28 @@
 const cachePrefix = "kaipai-";
-const cacheName = `${cachePrefix}v14`;
+const cacheName = `${cachePrefix}v16`;
 const shell = [
-  "./", "./index.html", "./style.css?v=14", "./app.js?v=13", "./cards-cn.json?v=3",
+  "./index.html", "./style.css?v=16", "./app.js?v=16", "./cards-cn.json?v=3",
   "./fonts/kaipai-serif.woff", "./moonlake.jpg",
   "./manifest.webmanifest", "./icons/kaipai-32.png", "./icons/kaipai-192.png", "./icons/kaipai-512.png", "./icons/kaipai-maskable.png",
 ];
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(caches.open(cacheName).then((cache) => (
-    cache.addAll(shell.map((url) => new Request(url, { cache: "reload" })))
-  )));
+  event.waitUntil((async () => {
+    const cache = await caches.open(cacheName);
+    const windows = await self.clients.matchAll({type: "window", includeUncontrolled: true});
+    let loaded = 0;
+    await Promise.all(shell.map(async path => {
+      const request = new Request(new URL(path, self.registration.scope), {cache: "no-cache"});
+      if (!(await cache.match(request))) await cache.add(request);
+      loaded++;
+      for (const client of windows) {
+        if (client.url.startsWith(self.registration.scope)) {
+          client.postMessage({type: "launch-progress", loaded, total: shell.length});
+        }
+      }
+    }));
+    await self.skipWaiting();
+  })());
 });
 
 self.addEventListener("activate", (event) => {
@@ -28,19 +41,10 @@ self.addEventListener("fetch", (event) => {
   event.respondWith((async () => {
     const cache = await caches.open(cacheName);
     if (request.mode === "navigate") {
-      try {
-        return await fetch(request);
-      } catch {
-        return (await cache.match("./index.html")) ?? Response.error();
-      }
+      return (await cache.match("./index.html")) ?? fetch(request);
     }
     const cached = await cache.match(request);
     if (cached) return cached;
-    const response = await fetch(request);
-    const imageFolder = new URL("./img/", self.registration.scope);
-    if (response.ok && request.destination === "image" && request.url.startsWith(imageFolder.href)) {
-      await cache.put(request, response.clone());
-    }
-    return response;
+    return fetch(request);
   })());
 });

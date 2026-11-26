@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="zh-CN" class="starting">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -9,11 +9,27 @@
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icons/kaipai-32.png">
   <link rel="apple-touch-icon" href="./icons/kaipai-192.png">
-  <link rel="stylesheet" href="./style.css?v=14">
-  <script type="module" src="./app.js?v=13"></script>
+  <style>
+    .starting {background:#171321;color:#fff2e4}
+    .starting body {margin:0}
+    .starting body > :not(#launch) {display:none!important}
+    #launch {min-height:100svh;display:grid;align-content:center;justify-items:center;gap:14px;background:radial-gradient(ellipse at center,#35283c,#171321 70%);font:15px/1.6 system-ui,sans-serif}
+    #launch[hidden],#launch [hidden] {display:none}
+    #launch strong {font:36px Georgia,"Songti SC",serif;letter-spacing:.14em}
+    #launch progress {width:150px;height:5px;accent-color:#e4b9d2}
+    #launch button {color:#291b2c;background:#ebccdf;border:0;border-radius:30px;padding:12px 24px;font:inherit}
+  </style>
 </head>
 <body>
+  <section id="launch" aria-label="启动开牌">
+    <strong>开牌</strong>
+    <span id="launch-status" role="status">正在准备牌桌…</span>
+    <progress aria-label="资源加载中"></progress>
+    <button id="launch-retry" type="button" hidden>重新加载</button>
+    <noscript>请开启 JavaScript 后重新载入。</noscript>
+  </section>
   <header class="top">
+    <button id="nav-back" class="quiet" type="button" hidden><span aria-hidden="true">‹</span> 返回</button>
     <span class="brand"><img src="./icons/kaipai-192.png" alt="" width="38" height="38"> 开牌</span>
     <nav aria-label="游戏工具"><button id="guide" class="quiet" type="button">游戏玩法</button><button id="install" class="quiet" type="button">安装</button></nav>
   </header>
@@ -29,8 +45,9 @@
     </section>
     <div class="layout">
       <section class="quick" aria-labelledby="quick-title">
-        <div class="setup-head"><h2 id="quick-title" tabindex="-1">选个难度</h2><button class="quiet" id="quick-back" type="button">返回</button></div>
+        <div class="setup-head"><h2 id="quick-title" tabindex="-1">选个难度</h2></div>
         <p class="quick-hint">点一个难度，就能翻牌。第一次玩？从「破冰」开始。</p>
+        <button id="resume" class="primary" type="button" hidden>继续当前牌局</button>
         <div class="presets">
           <button data-level="1" disabled><i aria-hidden="true">Ⅰ</i><strong>破冰</strong><small>从真心话聊起</small></button>
           <button data-level="2" disabled><i aria-hidden="true">Ⅱ</i><strong>升温</strong><small>问答与挑战穿插</small></button>
@@ -38,11 +55,10 @@
           <button data-level="4" disabled><i aria-hidden="true">Ⅳ</i><strong>大胆</strong><small>最高尺度的大冒险</small></button>
         </div>
         <p id="quick-status" role="status">正在加载牌库…</p>
-        <button id="quick-retry" type="button" class="quiet" hidden>重新加载</button>
         <button id="custom" type="button" class="quiet">自定义牌组 →</button>
       </section>
       <aside class="settings" aria-label="牌局设置">
-        <div class="setup-head"><h2 tabindex="-1" id="setup-title">设置牌局</h2><button type="button" class="quiet" id="back">返回</button></div>
+        <div class="setup-head"><h2 tabindex="-1" id="setup-title">设置牌局</h2></div>
         <fieldset id="free-levels">
           <legend>尺度（可多选）</legend>
           <label><input id="all-levels" type="checkbox"><span>全选</span></label>
@@ -70,7 +86,6 @@
           <button id="flip" type="button" aria-label="翻开卡牌" hidden></button>
           <div class="card-center"><div class="suit" aria-hidden="true"><i></i></div>
             <h2 id="card-title">准备开牌</h2>
-            <div id="art"></div>
             <p id="card-text">选好等级，抽一张试试。</p>
           </div>
           <div id="details" class="details" hidden></div>
@@ -98,5 +113,78 @@
     <p>在浏览器菜单里选「安装应用」或「添加到主屏幕」。iPhone 上可在 Safari 的分享菜单中找到「添加到主屏幕」。</p>
     <form method="dialog"><button class="quiet close">关闭</button></form>
   </dialog>
+  <script type="module">
+    const message = document.getElementById("launch-status");
+    const retry = document.getElementById("launch-retry");
+    retry.onclick = () => location.reload();
+
+    async function prepareOffline() {
+      if (!("serviceWorker" in navigator)) return;
+      const workers = navigator.serviceWorker;
+      const url = new URL("./sw.js?v=16", location.href).href;
+      if (workers.controller?.scriptURL === url) return;
+
+      let registration;
+      try {
+        registration = await workers.register(url);
+      } catch (error) {
+        // Storage and worker access can be disabled in embedded browsers.
+        if (error.name === "SecurityError" || error.name === "NotAllowedError") return;
+        throw error;
+      }
+      const worker = registration.installing ?? registration.waiting ?? registration.active;
+      if (!worker || worker.scriptURL !== url) throw Error("Offline package unavailable");
+      await new Promise((resolve, reject) => {
+        function check() {
+          if (worker.state !== "redundant" && workers.controller?.scriptURL !== url) return;
+          worker.removeEventListener("statechange", check);
+          workers.removeEventListener("controllerchange", check);
+          if (worker.state === "redundant") reject(Error("Offline package installation failed"));
+          else resolve();
+        }
+        worker.addEventListener("statechange", check);
+        workers.addEventListener("controllerchange", check);
+        check();
+      });
+    }
+
+    try {
+      const bar = document.querySelector("#launch progress");
+      function progress(event) {
+        if (event.origin !== location.origin || event.data?.type !== "launch-progress") return;
+        bar.max = event.data.total;
+        bar.value = event.data.loaded;
+      }
+      navigator.serviceWorker?.addEventListener("message", progress);
+      try {
+        await prepareOffline();
+      } finally {
+        navigator.serviceWorker?.removeEventListener("message", progress);
+      }
+      message.textContent = "正在打开牌库…";
+      const css = new Promise((resolve, reject) => {
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = "./style.css?v=16";
+        link.onload = resolve;
+        link.onerror = reject;
+        document.head.append(link);
+      });
+      const background = new Image();
+      background.src = "./moonlake.jpg";
+      await Promise.all([
+        import("./app.js?v=16").then(app => app.loadDeck()),
+        css.then(() => document.fonts.load("16px Kaipai")),
+        background.decode()
+      ]);
+      document.getElementById("launch").hidden = true;
+      document.documentElement.classList.remove("starting");
+    } catch (error) {
+      console.error("Launch failed", error);
+      message.textContent = "资源加载失败，请检查网络后重试。";
+      document.querySelector("#launch progress").hidden = true;
+      retry.hidden = false;
+    }
+  </script>
 </body>
 </html>

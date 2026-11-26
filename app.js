@@ -186,9 +186,15 @@ function showOptions() {
     groups.append(details);
   }
 }
-function displayScreen(screen) {
+let depth = 0;
+let returning = false;
+const positions = new Map();
+history.scrollRestoration = "manual";
+function displayScreen(screen, direction = "forward") {
   main.dataset.screen = screen;
-  byId("enter-label").textContent = gameSettings ? "继续牌局" : "进入牌桌";
+  byId("nav-back").hidden = screen === "home";
+  byId("nav-back").setAttribute("aria-label", history.state?.editing ? "返回牌桌，放弃未保存的设置" : "返回上一页");
+  byId("resume").hidden = !gameSettings;
   if (screen === "setup") {
     if (gameSettings) {
       for (const input of byId("free-levels").querySelectorAll("input")) {
@@ -200,28 +206,58 @@ function displayScreen(screen) {
       for (const index of gameSettings.indices) selected.add(index);
     }
     showOptions();
-    byId("back").textContent = history.state?.editing ? "取消" : "返回";
     if (decks) applyButton.textContent = history.state?.editing ? "保存设置" : "开始游戏";
   }
-  window.scrollTo(0, 0);
-  byId({home:"enter", quick:"quick-title", setup:"setup-title", game:"round"}[screen]).focus({preventScroll:true});
+  const previous = direction === "back" ? positions.get(depth) : null;
+  const heading = byId({home:"enter", quick:"quick-title", setup:"setup-title", game:"round"}[screen]);
+  const focus = previous?.focus?.checkVisibility?.() ? previous.focus : heading;
+  focus.focus({preventScroll:true});
+  window.scrollTo(0, previous?.y ?? 0);
+  if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    const panel = main.querySelector({home:".intro", quick:".quick", setup:".settings", game:".play"}[screen]);
+    panel.animate([
+      {opacity:0.6, transform:`translateX(${direction === "back" ? -16 : 20}px)`},
+      {opacity:1, transform:"translateX(0)"}
+    ], {duration:180, easing:"ease-out"});
+  }
 }
 
 function navigate(screen, replace = false) {
-  const state = { screen, editing: screen === "setup" && main.dataset.screen === "game" };
+  if (!replace) {
+    positions.set(depth, {y:scrollY, focus:document.activeElement});
+    depth++;
+  }
+  const state = { screen, depth, editing: screen === "setup" && main.dataset.screen === "game" };
   if (replace) history.replaceState(state, "");
   else history.pushState(state, "");
   displayScreen(screen);
 }
-history.replaceState({screen:"home"}, "");
+function goBack() {
+  if (returning) return;
+  returning = true;
+  history.back();
+}
+function openSheet(id) {
+  history.pushState({...history.state, sheet:id}, "");
+  byId(id).showModal();
+}
+history.replaceState({screen:"home", depth}, "");
 window.addEventListener("popstate", event => {
+  returning = false;
+  const sheet = document.querySelector("dialog[open]");
+  if (sheet && sheet.id !== event.state?.sheet) sheet.close();
   const target = event.state?.screen;
-  displayScreen(target === "quick" || target === "setup" || (target === "game" && gameSettings) ? target : "home");
+  const screen = target === "quick" || target === "setup" || (target === "game" && gameSettings) ? target : "home";
+  const nextDepth = event.state?.depth ?? 0;
+  const direction = nextDepth < depth ? "back" : "forward";
+  depth = nextDepth;
+  if (main.dataset.screen !== screen) displayScreen(screen, direction);
+  if (event.state?.sheet && !byId(event.state.sheet).open) byId(event.state.sheet).showModal();
 });
-byId("enter").addEventListener("click", () => navigate(gameSettings ? "game" : "quick"));
-byId("quick-back").addEventListener("click", () => history.back());
+byId("enter").addEventListener("click", () => navigate("quick"));
+byId("resume").addEventListener("click", () => navigate("game"));
+byId("nav-back").addEventListener("click", goBack);
 byId("custom").addEventListener("click", () => navigate("setup"));
-byId("quick-retry").addEventListener("click", loadDeck);
 for (const button of document.querySelectorAll(".presets button")) {
   button.addEventListener("click", () => {
     const level = button.dataset.level;
@@ -231,11 +267,10 @@ for (const button of document.querySelectorAll(".presets button")) {
   });
 }
 byId("edit").addEventListener("click", () => navigate("setup"));
-byId("back").addEventListener("click", () => history.back());
-byId("guide").addEventListener("click", () => byId("guide-help").showModal());
+byId("guide").addEventListener("click", () => openSheet("guide-help"));
 
 applyButton.addEventListener("click", () => {
-  if (!decks) { loadDeck(); return; }
+  if (!decks) return;
   const selection = {
     levels: selectedLevels(),
     indices: available.filter(({index}) => selected.has(index)).map(({index}) => index),
@@ -244,7 +279,7 @@ applyButton.addEventListener("click", () => {
   const changed = JSON.stringify(selection) !== JSON.stringify(gameSettings);
   gameSettings = selection;
   if (changed || !editing) reshuffle();
-  if (editing) history.back();
+  if (editing) goBack();
   else navigate("game", true);
 });
 
@@ -335,17 +370,6 @@ function render(card, state = card ? "drawn" : "ready") {
   byId("round").textContent = gameSettings ? `纯翻牌 · 尺度 ${gameSettings.levels.join("、")}` : "";
   if (card) drawButton.textContent = pile.length ? "翻下一张" : "重新洗牌";
 
-  const art = byId("art");
-  art.replaceChildren();
-  if (card?.img && /^[a-zA-Z0-9_-]+\.png$/.test(card.img)) {
-    const image = new Image();
-    image.alt = "";
-    image.hidden = true;
-    image.addEventListener("load", () => { image.hidden = false; }, { once: true });
-    image.src = `./img/${card.img}`;
-    art.append(image);
-  }
-
   const details = byId("details");
   details.replaceChildren();
   const labels = [];
@@ -390,7 +414,7 @@ function drawCard() {
 }
 drawButton.addEventListener("click", drawCard);
 byId("flip").addEventListener("click", drawCard);
-resetButton.addEventListener("click", () => byId("shuffle-help").showModal());
+resetButton.addEventListener("click", () => openSheet("shuffle-help"));
 byId("confirm-shuffle").addEventListener("click", reshuffle);
 
 byId("free-levels").addEventListener("change", event => {
@@ -400,6 +424,9 @@ byId("free-levels").addEventListener("change", event => {
   showOptions();
 });
 for (const dialog of document.querySelectorAll("dialog")) {
+  dialog.addEventListener("close", () => {
+    if (history.state?.sheet === dialog.id) goBack();
+  });
   dialog.addEventListener("click", event => {
     if (event.target !== dialog) return;
     const box = dialog.getBoundingClientRect();
@@ -421,7 +448,7 @@ if (window.matchMedia("(display-mode: standalone)").matches || navigator.standal
 }
 installButton.addEventListener("click", async () => {
   if (!installPrompt) {
-    byId("install-help").showModal();
+    openSheet("install-help");
     return;
   }
   const prompt = installPrompt;
@@ -429,54 +456,28 @@ installButton.addEventListener("click", async () => {
   try {
     await prompt.prompt();
   } catch {
-    byId("install-help").showModal();
+    openSheet("install-help");
   }
 });
 
-async function loadDeck() {
-  byId("quick-status").textContent = "正在加载牌库…";
-  byId("quick-retry").hidden = true;
-  applyButton.disabled = true;
-  applyButton.textContent = "正在加载牌库…";
-  drawButton.disabled = true;
-  resetButton.hidden = true;
-  status.textContent = "正在加载牌库…";
-  render(null, "loading");
-  try {
-    const response = await fetch("./cards-cn.json?v=3");
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const data = await response.json();
-    for (const level of ["1", "2", "3", "4"]) {
-      if (!Array.isArray(data[level]) || !data[level].length) {
-        throw new Error(`Missing level ${level}`);
-      }
+export async function loadDeck() {
+  const response = await fetch("./cards-cn.json?v=3");
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  const data = await response.json();
+  for (const level of ["1", "2", "3", "4"]) {
+    if (!Array.isArray(data[level]) || !data[level].length) {
+      throw new Error(`Missing level ${level}`);
     }
-    decks = data;
-    catalog = Object.entries(decks).flatMap(([level, cards]) =>
-      cards.map(card => ({level, card}))
-    ).map((entry, index) => ({...entry, index}));
-    selected = new Set(catalog.map(entry => entry.index));
-    for (const button of document.querySelectorAll(".presets button")) button.disabled = false;
-    byId("quick-status").textContent = "";
-    buildFilters(catalog.map(entry => entry.card));
-    applyButton.disabled = false;
-    applyButton.textContent = "开始游戏";
-    showOptions();
-  } catch (error) {
-    console.error("Unable to load the deck", error);
-    byId("quick-status").textContent = "牌库加载失败，请检查网络。";
-    byId("quick-retry").hidden = false;
-    status.textContent = "牌库加载失败，请检查网络后重试。";
-    render(null, "error");
-    applyButton.disabled = false;
-    applyButton.textContent = "牌库加载失败，点此重试";
   }
-}
-
-loadDeck();
-
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("./sw.js").catch((error) => {
-    console.warn("Offline setup failed", error);
-  });
+  decks = data;
+  catalog = Object.entries(decks).flatMap(([level, cards]) =>
+    cards.map(card => ({level, card}))
+  ).map((entry, index) => ({...entry, index}));
+  selected = new Set(catalog.map(entry => entry.index));
+  for (const button of document.querySelectorAll(".presets button")) button.disabled = false;
+  byId("quick-status").textContent = "";
+  buildFilters(catalog.map(entry => entry.card));
+  applyButton.disabled = false;
+  applyButton.textContent = "开始游戏";
+  showOptions();
 }

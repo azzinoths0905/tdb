@@ -160,7 +160,6 @@ button,fieldset label {touch-action:manipulation;-webkit-tap-highlight-color:tra
 button:active:not(:disabled), fieldset label:active span {filter:brightness(.88)}
 #shuffle-help form {display:flex;justify-content:flex-end;gap:10px}
 @media(prefers-reduced-motion:no-preference) {
-  .settings,.gamebar,.intro .hero-copy {animation:arrive .22s ease-out}
   .card[data-state="ready"] .card-center,dialog[open] {animation:arrive .2s ease-out}
   @keyframes arrive {from {opacity:.55;transform:translateY(6px)} to {opacity:1;transform:translateY(0)}}
 }
@@ -207,3 +206,9 @@ main[data-screen="quick"] :is(.settings,.play) {display:none}
 .presets small {color:var(--muted)}
 #quick-status:empty {display:none}
 #custom {width:100%}
+
+body:has(#nav-back:not([hidden])) .top {position:sticky;top:0;z-index:3;background:#1c1728f5}
+body:has(#nav-back:not([hidden])) .top .brand {display:none}
+#nav-back {display:inline-flex;align-items:center;gap:6px;padding-inline:10px}
+#nav-back span {font:1.6rem/1 Georgia,serif}
+#resume {width:100%}
