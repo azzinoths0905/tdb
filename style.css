@@ -28,7 +28,6 @@ main[data-screen="setup"] .card, main[data-screen="setup"] #reset {display: none
 .top, main {width: min(1080px, 90%); margin: auto}
 .top {display: flex; justify-content: space-between; align-items: center; padding: 18px 0; border-bottom: 1px solid var(--line)}
 .brand {font: bold 1.55rem var(--serif); display: flex; gap: 12px; align-items: center}
-.brand i {font: 1.2rem Georgia, serif; color: var(--mint); border: 1px solid; border-radius: 4px; padding: 1px 5px; transform: rotate(-10deg)}
 nav {display: flex; gap: 10px}
 button {border-radius: 100px; padding: 10px 21px; min-height: 44px}
 .quiet, .timer button {background: transparent; border: 1px solid var(--line)}
@@ -87,10 +86,8 @@ body {
 body:has(main[data-screen="home"]) {background:radial-gradient(ellipse at 72% 42%,#382a44,#1d182a 62%,#14111e)}
 .top, main {width:min(1280px,92%)}
 .top {padding:22px 0; border-color:#dac1d038}
-.brand {gap:13px; letter-spacing:.17em}
-.brand-seal {position:relative; display:grid; place-items:center}
-.brand .brand-seal {width:33px; height:33px; border:1px solid #dec1d19c; border-radius:50%; transform:none; color:#f7cfcc; font-size:1.5rem}
-.brand-seal::after {content:"";position:absolute; inset:6px -4px; transform:rotate(-38deg); border:1px solid #e7bed497; border-radius:50%}
+.brand img {border-radius:9px}
+.brand {gap:9px; letter-spacing:.17em}
 .top nav {gap:8px}
 .top .quiet {font-size:.88rem; border-color:transparent}
 .top #install {border-color:#dbc1d358; background:#251c3099}

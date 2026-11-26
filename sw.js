@@ -1,9 +1,9 @@
 const cachePrefix = "kaipai-";
-const cacheName = `${cachePrefix}v13`;
+const cacheName = `${cachePrefix}v14`;
 const shell = [
-  "./", "./index.html", "./style.css?v=13", "./app.js?v=13", "./cards-cn.json?v=3",
+  "./", "./index.html", "./style.css?v=14", "./app.js?v=13", "./cards-cn.json?v=3",
   "./fonts/kaipai-serif.woff", "./moonlake.jpg",
-  "./manifest.webmanifest", "./icons/icon-192.png", "./icons/icon-512.png",
+  "./manifest.webmanifest", "./icons/kaipai-32.png", "./icons/kaipai-192.png", "./icons/kaipai-512.png", "./icons/kaipai-maskable.png",
 ];
 
 self.addEventListener("install", (event) => {
